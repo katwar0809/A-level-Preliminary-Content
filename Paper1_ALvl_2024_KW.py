@@ -66,6 +66,28 @@ class Puzzle():
             TPattern = Pattern("T", "TTT**T**T")
             self.__AllowedPatterns.append(TPattern)
             self.__AllowedSymbols.append("T")
+            LPattern = Pattern("L", "L***LLLL*")
+            self.__AllowedPatterns.append(LPattern)
+            self.__AllowedSymbols.append("L")
+
+    def __SavePuzzle(self, Filename):
+        with open(Filename, 'w') as f:
+            f.write(f"{len(self.__AllowedSymbols)}\n")
+            for symbol in self.__AllowedSymbols:
+                f.write(f"{symbol}\n")
+            f.write(f"{len(self.__AllowedPatterns)}\n")
+            for pattern in self.__AllowedPatterns:
+                f.write(f"{pattern.__Symbol()},{pattern.GetPatternSequence()}\n")
+            f.write(f"{self.__GridSize}\n")
+            for cell in self.__Grid:
+                if isinstance(cell, BlockedCell):
+                    f.write('@,\n')
+                else:
+                    f.write(f"{cell._Symbol},{cell.__SymbolsNotAllowed}\n")
+
+            f.write(f"{self.__Score}\n")
+            f.write(f"{self.__SymbolsLeft}\n")
+
 
     def __LoadPuzzle(self, Filename):
         """
@@ -319,6 +341,7 @@ class Cell():
 
         self._Symbol = ""
         self.__SymbolsNotAllowed = []
+        self.blocked = False
 
     def GetSymbol(self):
         """
@@ -360,6 +383,8 @@ class Cell():
         """
 
         self._Symbol = NewSymbol
+        self.blocked = True
+        # blocks cell if it's been edited.
 
     def CheckSymbolAllowed(self, SymbolToCheck):
         """
@@ -378,7 +403,11 @@ class Cell():
         for Item in self.__SymbolsNotAllowed:
             if Item == SymbolToCheck:
                 return False
-        return True
+
+        if self.blocked:
+            return False
+        else:
+            return True
 
     def AddToNotAllowedSymbols(self, SymbolToAdd):
         """
